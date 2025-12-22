@@ -39,4 +39,16 @@ public class StaffUserRepository {
         """;
     return jdbcTemplate.query(sql, rowMapper);
   }
+
+  public java.util.Optional<StaffUser> findById(long id) {
+    String sql = """
+      SELECT id, name, email, role, created_at, updated_at
+      FROM staff_users
+      WHERE id = ?
+      """;
+
+    return jdbcTemplate.query(sql, rowMapper, id)
+        .stream()
+        .findFirst();
+  }
 }

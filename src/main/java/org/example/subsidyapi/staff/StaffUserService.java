@@ -15,4 +15,8 @@ public class StaffUserService {
   public List<StaffUser> getAllStaffUsers() {
     return repository.findAll();
   }
+
+  public java.util.Optional<StaffUser> getStaffUserById(long id) {
+    return repository.findById(id);
+  }
 }
