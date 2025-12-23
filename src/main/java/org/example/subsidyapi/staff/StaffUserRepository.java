@@ -1,10 +1,13 @@
 package org.example.subsidyapi.staff;
 
-import java.sql.Timestamp;
+import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -40,12 +43,12 @@ public class StaffUserRepository {
     return jdbcTemplate.query(sql, rowMapper);
   }
 
-  public java.util.Optional<StaffUser> findById(long id) {
+  public Optional<StaffUser> findById(long id) {
     String sql = """
-      SELECT id, name, email, role, created_at, updated_at
-      FROM staff_users
-      WHERE id = ?
-      """;
+        SELECT id, name, email, role, created_at, updated_at
+        FROM staff_users
+        WHERE id = ?
+        """;
 
     return jdbcTemplate.query(sql, rowMapper, id)
         .stream()
@@ -54,11 +57,48 @@ public class StaffUserRepository {
 
   public List<StaffUser> findByRole(StaffRole role) {
     String sql = """
-      SELECT id, name, email, role, created_at, updated_at
-      FROM staff_users
-      WHERE role = ?
-      ORDER BY id
-      """;
+        SELECT id, name, email, role, created_at, updated_at
+        FROM staff_users
+        WHERE role = ?
+        ORDER BY id
+        """;
     return jdbcTemplate.query(sql, rowMapper, role.name());
+  }
+
+  public int insert(StaffUser user) {
+    String sql = """
+        INSERT INTO staff_users (id, name, email, role)
+        VALUES (?, ?, ?, ?)
+        """;
+    return jdbcTemplate.update(
+        sql,
+        user.getId(),
+        user.getName(),
+        user.getEmail(),
+        user.getRole().name()
+    );
+  }
+
+  public long insert(String name, String email, StaffRole role) {
+    String sql = """
+        INSERT INTO staff_users (name, email, role)
+        VALUES (?, ?, ?)
+        """;
+
+    KeyHolder keyHolder = new GeneratedKeyHolder();
+
+    jdbcTemplate.update(con -> {
+      PreparedStatement ps = con.prepareStatement(sql, new String[]{"id"});
+      ps.setString(1, name);
+      ps.setString(2, email);
+      ps.setString(3, role.name());
+      return ps;
+    }, keyHolder);
+
+    Number key = keyHolder.getKey();
+    if (key == null) {
+      throw new IllegalStateException("Failed to retrieve generated id");
+    }
+    return key.longValue();
   }
 }

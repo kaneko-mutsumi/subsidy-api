@@ -7,7 +7,7 @@ CREATE TABLE subsidy_applications (
 );
 
 CREATE TABLE staff_users (
-  id          BIGINT        PRIMARY KEY,
+  id          BIGINT        PRIMARY KEY AUTO_INCREMENT,
   name        VARCHAR(100)  NOT NULL,
   email       VARCHAR(100)  NOT NULL UNIQUE,
   role        VARCHAR(20)   NOT NULL,
