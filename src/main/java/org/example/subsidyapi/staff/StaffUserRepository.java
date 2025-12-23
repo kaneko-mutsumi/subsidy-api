@@ -51,4 +51,14 @@ public class StaffUserRepository {
         .stream()
         .findFirst();
   }
+
+  public List<StaffUser> findByRole(StaffRole role) {
+    String sql = """
+      SELECT id, name, email, role, created_at, updated_at
+      FROM staff_users
+      WHERE role = ?
+      ORDER BY id
+      """;
+    return jdbcTemplate.query(sql, rowMapper, role.name());
+  }
 }
