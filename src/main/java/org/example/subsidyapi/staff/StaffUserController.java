@@ -1,9 +1,11 @@
 package org.example.subsidyapi.staff;
 
 import java.util.List;
+import org.example.subsidyapi.controller.InvalidRequestParameterException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -16,8 +18,22 @@ public class StaffUserController {
   }
 
   @GetMapping("/staff-users")
-  public List<StaffUser> getAllStaffUsers() {
-    return service.getAllStaffUsers();
+  public List<StaffUser> getStaffUsers(@RequestParam(required = false) String role) {
+    if (role == null) {
+      return service.getAllStaffUsers();
+    }
+    StaffRole r = parseRole(role);
+    return service.getStaffUsersByRole(r);
+  }
+
+  private StaffRole parseRole(String role) {
+    try {
+      return StaffRole.valueOf(role.trim().toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new InvalidRequestParameterException(
+          "role の値が不正です: " + role + "（ADMIN / STAFF を指定）"
+      );
+    }
   }
 
   @GetMapping("/staff-users/{id}")

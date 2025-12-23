@@ -19,4 +19,8 @@ public class StaffUserService {
   public java.util.Optional<StaffUser> getStaffUserById(long id) {
     return repository.findById(id);
   }
+
+  public List<StaffUser> getStaffUsersByRole(StaffRole role) {
+    return repository.findByRole(role);
+  }
 }
