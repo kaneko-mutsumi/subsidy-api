@@ -47,10 +47,19 @@ public class StaffUserController {
 
   @PostMapping("/staff-users")
   public ResponseEntity<StaffUser> createStaffUser(@RequestBody CreateStaffUserRequest req) {
+
+    if (req.name() == null || req.name().isBlank()) {
+      throw new InvalidRequestParameterException("name は必須です");
+    }
+    if (req.email() == null || req.email().isBlank()) {
+      throw new InvalidRequestParameterException("email は必須です");
+    }
+    if (req.role() == null || req.role().isBlank()) {
+      throw new InvalidRequestParameterException("role は必須です（ADMIN / STAFF）");
+    }
+
     StaffRole role = parseRole(req.role());
-
     StaffUser created = service.createStaffUser(req.name(), req.email(), role);
-
     return ResponseEntity.status(201).body(created);
   }
 }
