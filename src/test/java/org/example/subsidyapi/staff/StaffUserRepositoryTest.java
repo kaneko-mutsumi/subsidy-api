@@ -1,6 +1,8 @@
 package org.example.subsidyapi.staff;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -66,5 +68,16 @@ class StaffUserRepositoryTest {
     // data.sql に admin@example.com がいる前提
     assertThrows(DuplicateKeyException.class,
         () -> repository.insert("重複", "admin@example.com", StaffRole.STAFF));
+  }
+
+  @Test
+  void update_existingUser_updatesRow() {
+    int updated = repository.update(1L, "更新 太郎", "admin_updated@example.com", StaffRole.ADMIN);
+    assertEquals(1, updated);
+
+    var opt = repository.findById(1L);
+    assertTrue(opt.isPresent());
+    assertEquals("更新 太郎", opt.get().getName());
+    assertEquals("admin_updated@example.com", opt.get().getEmail());
   }
 }

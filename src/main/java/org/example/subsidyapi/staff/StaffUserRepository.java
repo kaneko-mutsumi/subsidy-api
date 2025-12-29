@@ -101,4 +101,13 @@ public class StaffUserRepository {
     }
     return key.longValue();
   }
+
+  public int update(long id, String name, String email, StaffRole role) {
+    String sql = """
+      UPDATE staff_users
+      SET name = ?, email = ?, role = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+      """;
+    return jdbcTemplate.update(sql, name, email, role.name(), id);
+  }
 }

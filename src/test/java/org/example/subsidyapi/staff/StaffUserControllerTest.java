@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -78,7 +79,8 @@ class StaffUserControllerTest {
   void createStaffUser_emailAlreadyExists_returns409() throws Exception {
     // Service が EmailAlreadyExistsException を投げる想定 → 409
     when(staffUserService.createStaffUser(any(), any(), any()))
-        .thenThrow(new EmailAlreadyExistsException("email はすでに登録されています: dup@example.com"));
+        .thenThrow(
+            new EmailAlreadyExistsException("email はすでに登録されています: dup@example.com"));
 
     String body = """
         {"name":"重複テスト","email":"dup@example.com","role":"STAFF"}
@@ -116,6 +118,29 @@ class StaffUserControllerTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(10))
         .andExpect(jsonPath("$.email").value("ok@example.com"))
+        .andExpect(jsonPath("$.role").value("STAFF"));
+  }
+
+  @Test
+  void updateStaffUser_success_returns200() throws Exception {
+    StaffUser updated = new StaffUser(
+        1L, "更新 太郎", "updated@example.com", StaffRole.STAFF, LocalDateTime.now(),
+        LocalDateTime.now()
+    );
+
+    when(staffUserService.updateStaffUser(1L, "更新 太郎", "updated@example.com", StaffRole.STAFF))
+        .thenReturn(Optional.of(updated));
+
+    String body = """
+        {"name":"更新 太郎","email":"updated@example.com","role":"STAFF"}
+        """;
+
+    mockMvc.perform(put("/staff-users/1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.email").value("updated@example.com"))
         .andExpect(jsonPath("$.role").value("STAFF"));
   }
 }
