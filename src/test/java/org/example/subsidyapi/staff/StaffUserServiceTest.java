@@ -103,4 +103,15 @@ class StaffUserServiceTest {
     verify(repository).insert("X", "x@example.com", StaffRole.ADMIN);
     verify(repository).findById(newId);
   }
+
+  @Test
+  void updateStaffUser_whenTargetNotFound_returnsEmpty() {
+    when(repository.update(999L, "X", "x@example.com", StaffRole.ADMIN)).thenReturn(0);
+
+    Optional<StaffUser> result = service.updateStaffUser(999L, "X", "x@example.com", StaffRole.ADMIN);
+
+    assertTrue(result.isEmpty());
+    verify(repository).update(999L, "X", "x@example.com", StaffRole.ADMIN);
+    verify(repository, never()).findById(anyLong());
+  }
 }
