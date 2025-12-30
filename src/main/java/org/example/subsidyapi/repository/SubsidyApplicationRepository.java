@@ -1,6 +1,8 @@
 package org.example.subsidyapi.repository;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +11,8 @@ import org.example.subsidyapi.subsidy.ApplicationStatus;
 import org.example.subsidyapi.subsidy.SubsidyApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 
@@ -112,5 +116,52 @@ public class SubsidyApplicationRepository {
       // 4) レスポンス用recordを作って返す
       return new TotalAmountByStatusResponse(status, totalAmount);
     });
+  }
+
+  public long insert(String applicantName, LocalDate applicationDate, BigDecimal amount,
+      ApplicationStatus status) {
+    String sql = """
+        INSERT INTO subsidy_applications (applicant_name, application_date, amount, status)
+        VALUES (?, ?, ?, ?)
+        """;
+
+    KeyHolder keyHolder = new GeneratedKeyHolder();
+
+    jdbcTemplate.update(con -> {
+      PreparedStatement ps = con.prepareStatement(sql, new String[]{"id"});
+      ps.setString(1, applicantName);
+      ps.setDate(2, Date.valueOf(applicationDate)); // ★ setDate
+      ps.setBigDecimal(3, amount);
+      ps.setString(4, status.name());
+      return ps;
+    }, keyHolder);
+
+    Number key = keyHolder.getKey();
+    if (key == null) {
+      throw new IllegalStateException("Failed to retrieve generated id");
+    }
+    return key.longValue();
+  }
+
+  public int update(long id, String applicantName, LocalDate applicationDate, BigDecimal amount,
+      ApplicationStatus status) {
+    String sql = """
+        UPDATE subsidy_applications
+        SET applicant_name = ?, application_date = ?, amount = ?, status = ?
+        WHERE id = ?
+        """;
+    return jdbcTemplate.update(
+        sql,
+        applicantName,
+        Date.valueOf(applicationDate),
+        amount,
+        status.name(),
+        id
+    );
+  }
+
+  public int delete(long id) {
+    String sql = "DELETE FROM subsidy_applications WHERE id = ?";
+    return jdbcTemplate.update(sql, id);
   }
 }
