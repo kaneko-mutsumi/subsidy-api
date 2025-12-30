@@ -80,4 +80,17 @@ class StaffUserRepositoryTest {
     assertEquals("更新 太郎", opt.get().getName());
     assertEquals("admin_updated@example.com", opt.get().getEmail());
   }
+
+  @Test
+  void delete_existingUser_deletesRow() {
+    int deleted = repository.delete(1L);
+    assertEquals(1, deleted);
+    assertTrue(repository.findById(1L).isEmpty());
+  }
+
+  @Test
+  void delete_notFound_returns0() {
+    int deleted = repository.delete(9999L);
+    assertEquals(0, deleted);
+  }
 }

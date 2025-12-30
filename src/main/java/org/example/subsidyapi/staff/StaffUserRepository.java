@@ -110,4 +110,9 @@ public class StaffUserRepository {
       """;
     return jdbcTemplate.update(sql, name, email, role.name(), id);
   }
+
+  public int delete(long id) {
+    String sql = "DELETE FROM staff_users WHERE id = ?";
+    return jdbcTemplate.update(sql, id);
+  }
 }
