@@ -3,6 +3,7 @@ package org.example.subsidyapi.staff;
 import java.util.List;
 import org.example.subsidyapi.controller.InvalidRequestParameterException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -84,5 +85,14 @@ public class StaffUserController {
     return service.updateStaffUser(id, req.name(), req.email(), role)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @DeleteMapping("/staff-users/{id}")
+  public ResponseEntity<Void> deleteStaffUser(@PathVariable long id) {
+    boolean deleted = service.deleteStaffUser(id);
+    if (!deleted) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.noContent().build(); // 204
   }
 }

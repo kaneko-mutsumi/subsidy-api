@@ -114,4 +114,24 @@ class StaffUserServiceTest {
     verify(repository).update(999L, "X", "x@example.com", StaffRole.ADMIN);
     verify(repository, never()).findById(anyLong());
   }
+
+  @Test
+  void deleteStaffUser_whenDeleted_returnsTrue() {
+    when(repository.delete(1L)).thenReturn(1);
+
+    boolean result = service.deleteStaffUser(1L);
+
+    assertTrue(result);
+    verify(repository).delete(1L);
+  }
+
+  @Test
+  void deleteStaffUser_whenNotFound_returnsFalse() {
+    when(repository.delete(999L)).thenReturn(0);
+
+    boolean result = service.deleteStaffUser(999L);
+
+    assertFalse(result);
+    verify(repository).delete(999L);
+  }
 }

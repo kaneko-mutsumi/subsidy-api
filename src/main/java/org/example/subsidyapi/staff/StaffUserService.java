@@ -50,4 +50,9 @@ public class StaffUserService {
       throw new EmailAlreadyExistsException("email はすでに登録されています: " + email);
     }
   }
+
+  public boolean deleteStaffUser(long id) {
+    int deleted = repository.delete(id);
+    return deleted > 0;
+  }
 }

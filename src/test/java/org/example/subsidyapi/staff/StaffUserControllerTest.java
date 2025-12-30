@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -142,5 +143,21 @@ class StaffUserControllerTest {
         .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.email").value("updated@example.com"))
         .andExpect(jsonPath("$.role").value("STAFF"));
+  }
+
+  @Test
+  void deleteStaffUser_notFound_returns404() throws Exception {
+    when(staffUserService.deleteStaffUser(999L)).thenReturn(false);
+
+    mockMvc.perform(delete("/staff-users/999"))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void deleteStaffUser_success_returns204() throws Exception {
+    when(staffUserService.deleteStaffUser(1L)).thenReturn(true);
+
+    mockMvc.perform(delete("/staff-users/1"))
+        .andExpect(status().isNoContent());
   }
 }
