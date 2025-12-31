@@ -1,6 +1,6 @@
 package org.example.subsidyapi.controller;
 
-import java.util.Map;
+import java.util.List;
 import org.example.subsidyapi.staff.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,44 +12,45 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ApiExceptionHandler {
 
   @ExceptionHandler(InvalidRequestParameterException.class)
-  public ResponseEntity<Map<String, Object>> handleInvalidParam(
+  public ResponseEntity<ApiErrorResponse> handleInvalidParam(
       InvalidRequestParameterException ex) {
-    Map<String, Object> body = Map.of(
-        "error", "BAD_REQUEST",
-        "message", ex.getMessage(),
-        "detail", ex.getClass().getSimpleName()
+    ApiErrorResponse body = new ApiErrorResponse(
+        "BAD_REQUEST",
+        ex.getMessage(),
+        ex.getClass().getSimpleName(),
+        List.of()
     );
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+  public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
     var fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-        .map(error -> Map.of(
-            "field", error.getField(),
-            "message", error.getDefaultMessage()
+        .map(error -> new ApiErrorResponse.FieldError(
+            error.getField(),
+            error.getDefaultMessage()
         ))
         .toList();
     String message = fieldErrors.stream()
         .findFirst()
-        .map(err -> String.valueOf(err.get("message")))
+        .map(ApiErrorResponse.FieldError::message)
         .orElse("request validation failed");
-    Map<String, Object> body = Map.of(
-        "error", "BAD_REQUEST",
-        "message", message,
-        "detail", ex.getClass().getSimpleName(),
-        "errors", fieldErrors
+    ApiErrorResponse body = new ApiErrorResponse(
+        "BAD_REQUEST",
+        message,
+        ex.getClass().getSimpleName(),
+        fieldErrors
     );
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
   }
 
-
   @ExceptionHandler(EmailAlreadyExistsException.class)
-  public ResponseEntity<Map<String, Object>> handleEmailDup(EmailAlreadyExistsException ex) {
-    Map<String, Object> body = Map.of(
-        "error", "CONFLICT",
-        "message", ex.getMessage(),
-        "detail", ex.getClass().getSimpleName()
+  public ResponseEntity<ApiErrorResponse> handleEmailDup(EmailAlreadyExistsException ex) {
+    ApiErrorResponse body = new ApiErrorResponse(
+        "CONFLICT",
+        ex.getMessage(),
+        ex.getClass().getSimpleName(),
+        List.of()
     );
     return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
   }
