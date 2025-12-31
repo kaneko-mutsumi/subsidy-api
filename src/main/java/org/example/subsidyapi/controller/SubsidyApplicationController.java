@@ -1,8 +1,5 @@
 package org.example.subsidyapi.controller;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import jakarta.validation.Valid;
@@ -46,13 +43,12 @@ public class SubsidyApplicationController {
   public ResponseEntity<SubsidyApplication> createApplication(
       @Valid @RequestBody CreateSubsidyApplicationRequest req
   ) {
-
-    LocalDate date = parseDate(req.applicationDate());
-    BigDecimal amount = parseAmount(req.amount());
-    ApplicationStatus status = ApplicationStatusParser.parse(req.status());
-
     SubsidyApplication created =
-        service.createApplication(req.applicantName(), date, amount, status);
+        service.createApplication(
+            req.applicantName(),
+            req.applicationDate(),
+            req.amount(),
+            req.status());
 
     return ResponseEntity.status(201).body(created);
   }
@@ -63,12 +59,12 @@ public class SubsidyApplicationController {
       @PathVariable long id,
       @Valid @RequestBody UpdateSubsidyApplicationRequest req
   ) {
-
-    LocalDate date = parseDate(req.applicationDate());
-    BigDecimal amount = parseAmount(req.amount());
-    ApplicationStatus status = ApplicationStatusParser.parse(req.status());
-
-    return service.updateApplication(id, req.applicantName(), date, amount, status)
+    return service.updateApplication(
+            id,
+            req.applicantName(),
+            req.applicationDate(),
+            req.amount(),
+            req.status())
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
@@ -82,21 +78,5 @@ public class SubsidyApplicationController {
     }
     return ResponseEntity.noContent().build(); // 204
   }
-
-  // ===== validation / parse helpers =====
-  private LocalDate parseDate(String s) {
-    try {
-      return LocalDate.parse(s.trim());
-    } catch (DateTimeParseException e) {
-      throw new InvalidRequestParameterException("applicationDate の形式が不正です: " + s + "（例: 2024-06-01）");
-    }
-  }
-
-  private BigDecimal parseAmount(String s) {
-    try {
-      return new BigDecimal(s.trim());
-    } catch (NumberFormatException e) {
-      throw new InvalidRequestParameterException("amount の形式が不正です: " + s + "（例: 1000000）");
-    }
-  }
 }
+
