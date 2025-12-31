@@ -28,6 +28,9 @@ dependencies {
     // JDBC + DataSource（H2 につなぐ用）
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
+    // OpenAPI / Swagger UI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
     // 組み込み H2 DB
     runtimeOnly 'com.h2database:h2'
 
