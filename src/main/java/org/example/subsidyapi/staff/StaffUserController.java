@@ -1,6 +1,7 @@
 package org.example.subsidyapi.staff;
 
 import java.util.List;
+import jakarta.validation.Valid;
 import org.example.subsidyapi.controller.InvalidRequestParameterException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,18 +49,9 @@ public class StaffUserController {
   }
 
   @PostMapping("/staff-users")
-  public ResponseEntity<StaffUser> createStaffUser(@RequestBody CreateStaffUserRequest req) {
-
-    if (req.name() == null || req.name().isBlank()) {
-      throw new InvalidRequestParameterException("name は必須です");
-    }
-    if (req.email() == null || req.email().isBlank()) {
-      throw new InvalidRequestParameterException("email は必須です");
-    }
-    if (req.role() == null || req.role().isBlank()) {
-      throw new InvalidRequestParameterException("role は必須です（ADMIN / STAFF）");
-    }
-
+  public ResponseEntity<StaffUser> createStaffUser(
+      @Valid @RequestBody CreateStaffUserRequest req
+  ) {
     StaffRole role = parseRole(req.role());
     StaffUser created = service.createStaffUser(req.name(), req.email(), role);
     return ResponseEntity.status(201).body(created);
@@ -68,17 +60,8 @@ public class StaffUserController {
   @PutMapping("/staff-users/{id}")
   public ResponseEntity<StaffUser> updateStaffUser(
       @PathVariable long id,
-      @RequestBody UpdateStaffUserRequest req
+      @Valid @RequestBody UpdateStaffUserRequest req
   ) {
-    if (req.name() == null || req.name().isBlank()) {
-      throw new InvalidRequestParameterException("name は必須です");
-    }
-    if (req.email() == null || req.email().isBlank()) {
-      throw new InvalidRequestParameterException("email は必須です");
-    }
-    if (req.role() == null || req.role().isBlank()) {
-      throw new InvalidRequestParameterException("role は必須です（ADMIN / STAFF）");
-    }
 
     StaffRole role = parseRole(req.role());
 

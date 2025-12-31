@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.example.subsidyapi.service.SubsidyApplicationService;
 import org.example.subsidyapi.subsidy.ApplicationStatus;
 import org.example.subsidyapi.subsidy.SubsidyApplication;
@@ -43,9 +44,8 @@ public class SubsidyApplicationController {
   // ===== C: Create =====
   @PostMapping("/applications")
   public ResponseEntity<SubsidyApplication> createApplication(
-      @RequestBody CreateSubsidyApplicationRequest req
+      @Valid @RequestBody CreateSubsidyApplicationRequest req
   ) {
-    validateCreateOrUpdate(req.applicantName(), req.applicationDate(), req.amount(), req.status());
 
     LocalDate date = parseDate(req.applicationDate());
     BigDecimal amount = parseAmount(req.amount());
@@ -61,9 +61,8 @@ public class SubsidyApplicationController {
   @PutMapping("/applications/{id}")
   public ResponseEntity<SubsidyApplication> updateApplication(
       @PathVariable long id,
-      @RequestBody UpdateSubsidyApplicationRequest req
+      @Valid @RequestBody UpdateSubsidyApplicationRequest req
   ) {
-    validateCreateOrUpdate(req.applicantName(), req.applicationDate(), req.amount(), req.status());
 
     LocalDate date = parseDate(req.applicationDate());
     BigDecimal amount = parseAmount(req.amount());
@@ -85,22 +84,6 @@ public class SubsidyApplicationController {
   }
 
   // ===== validation / parse helpers =====
-
-  private void validateCreateOrUpdate(String applicantName, String applicationDate, String amount, String status) {
-    if (applicantName == null || applicantName.isBlank()) {
-      throw new InvalidRequestParameterException("applicantName は必須です");
-    }
-    if (applicationDate == null || applicationDate.isBlank()) {
-      throw new InvalidRequestParameterException("applicationDate は必須です（例: 2024-06-01）");
-    }
-    if (amount == null || amount.isBlank()) {
-      throw new InvalidRequestParameterException("amount は必須です（例: 1000000）");
-    }
-    if (status == null || status.isBlank()) {
-      throw new InvalidRequestParameterException("status は必須です（APPLIED / APPROVED / PAID / WITHDRAWN）");
-    }
-  }
-
   private LocalDate parseDate(String s) {
     try {
       return LocalDate.parse(s.trim());

@@ -58,7 +58,11 @@ class StaffUserControllerTest {
             .content(body))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-        .andExpect(jsonPath("$.message").value("name は必須です"));
+        .andExpect(jsonPath("$.message").value("name は必須です"))
+        .andExpect(jsonPath("$.message").value("name は必須です"))
+        .andExpect(jsonPath("$.detail").value("MethodArgumentNotValidException"))
+        .andExpect(jsonPath("$.errors[0].field").value("name"))
+        .andExpect(jsonPath("$.errors[0].message").value("name は必須です"));
   }
 
   @Test
