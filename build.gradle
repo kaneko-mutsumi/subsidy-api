@@ -22,6 +22,9 @@ dependencies {
     // Web（Controller, REST API）
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // Validation（@NotBlank など）
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
     // JDBC + DataSource（H2 につなぐ用）
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 
