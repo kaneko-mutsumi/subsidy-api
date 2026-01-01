@@ -1,167 +1,66 @@
 package org.example.subsidyapi.repository;
 
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.example.subsidyapi.controller.TotalAmountByStatusResponse;
 import org.example.subsidyapi.subsidy.ApplicationStatus;
 import org.example.subsidyapi.subsidy.SubsidyApplication;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-
 
 @Repository
 public class SubsidyApplicationRepository {
 
-  private final JdbcTemplate jdbcTemplate;
+  private final SubsidyApplicationMapper mapper;
 
-  private final RowMapper<SubsidyApplication> rowMapper = (rs, rowNum) -> {
-    long id = rs.getLong("id");
-    String applicantName = rs.getString("applicant_name");
-    LocalDate applicationDate = rs.getDate("application_date").toLocalDate();
-    BigDecimal amount = rs.getBigDecimal("amount");
-
-    String statusString = rs.getString("status");
-    ApplicationStatus status = ApplicationStatus.valueOf(statusString.trim().toUpperCase());
-
-    return new SubsidyApplication(id, applicantName, applicationDate, amount, status);
-  };
-
-  public SubsidyApplicationRepository(JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = jdbcTemplate;
+  public SubsidyApplicationRepository(SubsidyApplicationMapper mapper) {
+    this.mapper = mapper;
   }
 
   public List<SubsidyApplication> findAll() {
-    String sql = """
-        SELECT id, applicant_name, application_date, amount, status
-        FROM subsidy_applications
-        ORDER BY id
-        """;
-    return jdbcTemplate.query(sql, rowMapper);
+    return mapper.findAll();
   }
 
   public Optional<SubsidyApplication> findById(long id) {
-    String sql = """
-        SELECT id, applicant_name, application_date, amount, status
-        FROM subsidy_applications
-        WHERE id = ?
-        """;
-
-    return jdbcTemplate.query(sql, rowMapper, id)   // List<SubsidyApplication>
-        .stream()                                  // Stream<SubsidyApplication>
-        .findFirst();                              // Optional<SubsidyApplication>
+    return Optional.ofNullable(
+        mapper.findById(id));                           // Optional<SubsidyApplication>
   }
 
   public List<SubsidyApplication> findByStatus(ApplicationStatus status) {
-    String sql = """
-        SELECT id, applicant_name, application_date, amount, status
-        FROM subsidy_applications
-        WHERE status = ?
-        ORDER BY id
-        """;
-
-    return jdbcTemplate.query(sql, rowMapper, status.name());
+    return mapper.findByStatus(status);
   }
 
   public BigDecimal sumAmount() {
-    String sql = """
-        SELECT COALESCE(SUM(amount), 0) AS total_amount
-        FROM subsidy_applications
-        """;
-    return jdbcTemplate.queryForObject(sql, BigDecimal.class);
+    return mapper.sumAmount();
   }
 
   public BigDecimal sumAmountByStatus(ApplicationStatus status) {
-    String sql = """
-        SELECT COALESCE(SUM(amount), 0) AS total_amount
-        FROM subsidy_applications
-        WHERE status = ?
-        """;
-    return jdbcTemplate.queryForObject(sql, BigDecimal.class, status.name());
+    return mapper.sumAmountByStatus(status);
   }
 
-  /**
-   * subsidy_applications を status ごとに GROUP BY して amount 合計を集計します（NULLは0扱い）。
-   *
-   * @return status 別の合計金額（totalAmount）のリスト
-   */
   public List<TotalAmountByStatusResponse> sumAmountGroupedByStatus() {
-    String sql = """
-        SELECT
-          status,
-          COALESCE(SUM(amount), 0) AS total_amount
-        FROM subsidy_applications
-        GROUP BY status
-        ORDER BY status
-        """;
-
-    return jdbcTemplate.query(sql, (rs, rowNum) -> {
-      // 1) status列をStringで取得
-      String statusString = rs.getString("status");
-
-      // 2) trim + toUpperCase して ApplicationStatus に変換
-      ApplicationStatus status = ApplicationStatus.valueOf(
-          statusString.trim().toUpperCase()
-      );
-
-      // 3) total_amount を BigDecimal で取得
-      BigDecimal totalAmount = rs.getBigDecimal("total_amount");
-
-      // 4) レスポンス用recordを作って返す
-      return new TotalAmountByStatusResponse(status, totalAmount);
-    });
+    return mapper.sumAmountGroupedByStatus();
   }
 
   public long insert(String applicantName, LocalDate applicationDate, BigDecimal amount,
       ApplicationStatus status) {
-    String sql = """
-        INSERT INTO subsidy_applications (applicant_name, application_date, amount, status)
-        VALUES (?, ?, ?, ?)
-        """;
-
-    KeyHolder keyHolder = new GeneratedKeyHolder();
-
-    jdbcTemplate.update(con -> {
-      PreparedStatement ps = con.prepareStatement(sql, new String[]{"id"});
-      ps.setString(1, applicantName);
-      ps.setDate(2, Date.valueOf(applicationDate)); // ★ setDate
-      ps.setBigDecimal(3, amount);
-      ps.setString(4, status.name());
-      return ps;
-    }, keyHolder);
-
-    Number key = keyHolder.getKey();
-    if (key == null) {
+    SubsidyApplicationCreateCommand command =
+        new SubsidyApplicationCreateCommand(applicantName, applicationDate, amount, status);
+    mapper.insert(command);
+    Long id = command.getId();
+    if (id == null) {
       throw new IllegalStateException("Failed to retrieve generated id");
     }
-    return key.longValue();
+    return id;
   }
 
   public int update(long id, String applicantName, LocalDate applicationDate, BigDecimal amount,
       ApplicationStatus status) {
-    String sql = """
-        UPDATE subsidy_applications
-        SET applicant_name = ?, application_date = ?, amount = ?, status = ?
-        WHERE id = ?
-        """;
-    return jdbcTemplate.update(
-        sql,
-        applicantName,
-        Date.valueOf(applicationDate),
-        amount,
-        status.name(),
-        id
-    );
+    return mapper.update(id, applicantName, applicationDate, amount, status);
   }
 
   public int delete(long id) {
-    String sql = "DELETE FROM subsidy_applications WHERE id = ?";
-    return jdbcTemplate.update(sql, id);
+    return mapper.delete(id);
   }
 }

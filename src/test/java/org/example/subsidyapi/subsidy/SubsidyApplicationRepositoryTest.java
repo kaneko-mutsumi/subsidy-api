@@ -9,11 +9,11 @@ import java.util.List;
 import org.example.subsidyapi.controller.TotalAmountByStatusResponse;
 import org.example.subsidyapi.repository.SubsidyApplicationRepository;
 import org.junit.jupiter.api.Test;
+import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 
-@JdbcTest
+@MybatisTest
 @Import(SubsidyApplicationRepository.class)
 class SubsidyApplicationRepositoryTest {
 
