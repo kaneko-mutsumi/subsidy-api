@@ -3,7 +3,6 @@ package org.example.subsidyapi.subsidy;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-
 public class SubsidyApplication {
 
   // フィールド（1件の申請が持つ情報）
@@ -13,7 +12,27 @@ public class SubsidyApplication {
   private BigDecimal amount;
   private ApplicationStatus status;
 
-  // コンストラクタ（全部のフィールドを受け取る）
+  /**
+   * MyBatis の constructor マッピングが Long を渡してくる場合に備えたコンストラクタ。
+   * （SubsidyApplication(Long, ...) が無いと NoSuchMethodException になるため）
+   */
+  public SubsidyApplication(
+      Long id,
+      String applicantName,
+      LocalDate applicationDate,
+      BigDecimal amount,
+      ApplicationStatus status
+  ) {
+    this(
+        id == null ? 0L : id,
+        applicantName,
+        applicationDate,
+        amount,
+        status
+    );
+  }
+
+  // 既存：全部のフィールドを受け取るコンストラクタ（id は long）
   public SubsidyApplication(
       long id,
       String applicantName,

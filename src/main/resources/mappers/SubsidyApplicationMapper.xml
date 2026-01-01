@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.subsidyapi.repository.SubsidyApplicationMapper">
+
+  <resultMap id="subsidyApplicationMap" type="org.example.subsidyapi.subsidy.SubsidyApplication">
+    <constructor>
+      <idArg column="id" javaType="java.lang.Long"/>
+      <arg column="applicant_name" javaType="java.lang.String"/>
+      <arg column="application_date" javaType="java.time.LocalDate"/>
+      <arg column="amount" javaType="java.math.BigDecimal"/>
+      <arg column="status" javaType="org.example.subsidyapi.subsidy.ApplicationStatus"/>
+    </constructor>
+  </resultMap>
+
+  <select id="findAll" resultMap="subsidyApplicationMap">
+    SELECT id, applicant_name, application_date, amount, status
+    FROM subsidy_applications
+    ORDER BY id
+  </select>
+
+  <select id="findById" parameterType="long" resultMap="subsidyApplicationMap">
+    SELECT id, applicant_name, application_date, amount, status
+    FROM subsidy_applications
+    WHERE id = #{id}
+  </select>
+
+  <select id="findByStatus" resultMap="subsidyApplicationMap">
+    SELECT id, applicant_name, application_date, amount, status
+    FROM subsidy_applications
+    WHERE status = #{status}
+    ORDER BY id
+  </select>
+
+  <select id="sumAmount" resultType="java.math.BigDecimal">
+    SELECT COALESCE(SUM(amount), 0)
+    FROM subsidy_applications
+  </select>
+
+  <select id="sumAmountByStatus" resultType="java.math.BigDecimal">
+    SELECT COALESCE(SUM(amount), 0)
+    FROM subsidy_applications
+    WHERE status = #{status}
+  </select>
+
+  <select id="sumAmountGroupedByStatus"
+    resultType="org.example.subsidyapi.controller.TotalAmountByStatusResponse">
+    SELECT status,
+    COALESCE(SUM(amount), 0) AS totalAmount
+    FROM subsidy_applications
+    GROUP BY status
+    ORDER BY status
+  </select>
+
+  <insert id="insert" parameterType="org.example.subsidyapi.repository.SubsidyApplicationCreateCommand"
+    useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO subsidy_applications (applicant_name, application_date, amount, status)
+    VALUES (#{applicantName}, #{applicationDate}, #{amount}, #{status})
+  </insert>
+
+  <update id="update">
+    UPDATE subsidy_applications
+    SET applicant_name = #{applicantName},
+    application_date = #{applicationDate},
+    amount = #{amount},
+    status = #{status}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="delete" parameterType="long">
+    DELETE FROM subsidy_applications WHERE id = #{id}
+  </delete>
+
+</mapper>
