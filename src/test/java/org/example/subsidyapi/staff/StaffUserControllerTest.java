@@ -81,6 +81,23 @@ class StaffUserControllerTest {
   }
 
   @Test
+  void createStaffUser_emailIsInvalid_returns400() throws Exception {
+    String body = """
+        {"name":"テスト","email":"invalid","role":"STAFF"}
+        """;
+
+    mockMvc.perform(post("/staff-users")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+        .andExpect(jsonPath("$.message").value("email の形式が不正です"))
+        .andExpect(jsonPath("$.detail").value("MethodArgumentNotValidException"))
+        .andExpect(jsonPath("$.errors[0].field").value("email"))
+        .andExpect(jsonPath("$.errors[0].message").value("email の形式が不正です"));
+  }
+
+  @Test
   void createStaffUser_emailAlreadyExists_returns409() throws Exception {
     // Service が EmailAlreadyExistsException を投げる想定 → 409
     when(staffUserService.createStaffUser(any(), any(), any()))
