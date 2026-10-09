@@ -58,7 +58,10 @@ class StaffUserControllerTest {
             .content(body))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
-        .andExpect(jsonPath("$.message").value("name は必須です"));
+        .andExpect(jsonPath("$.message").value("name は必須です"))
+        .andExpect(jsonPath("$.detail").value("MethodArgumentNotValidException"))
+        .andExpect(jsonPath("$.errors[0].field").value("name"))
+        .andExpect(jsonPath("$.errors[0].message").value("name は必須です"));
   }
 
   @Test
@@ -74,6 +77,23 @@ class StaffUserControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
         .andExpect(jsonPath("$.detail").value("InvalidRequestParameterException"));
+  }
+
+  @Test
+  void createStaffUser_emailIsInvalid_returns400() throws Exception {
+    String body = """
+        {"name":"テスト","email":"not-email","role":"STAFF"}
+        """;
+
+    mockMvc.perform(post("/staff-users")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+        .andExpect(jsonPath("$.message").value("email の形式が不正です"))
+        .andExpect(jsonPath("$.detail").value("MethodArgumentNotValidException"))
+        .andExpect(jsonPath("$.errors[0].field").value("email"))
+        .andExpect(jsonPath("$.errors[0].message").value("email の形式が不正です"));
   }
 
   @Test
